@@ -3,14 +3,32 @@ import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema(
 	{
+		name: { type: String, required: true },
 		email: { type: String, required: true, unique: true },
 		password: { type: String, required: true },
-		name: { type: String, required: true },
+
+		role: {
+			type: String,
+			enum: ['player', 'coach', 'admin'],
+			required: true,
+			default: 'player',
+		},
+
+		bio: { type: String },
+		team: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Team',
+		},
+		position: { type: String }, 
+		socials: {
+			twitter: { type: String },
+			instagram: { type: String },
+		},
+		profileImage: { type: String },
 	},
 	{ timestamps: true }
 );
 
-// Hash password before save
 userSchema.pre('save', async function (next) {
 	if (!this.isModified('password')) return next();
 	const salt = await bcrypt.genSalt(10);
@@ -18,11 +36,9 @@ userSchema.pre('save', async function (next) {
 	next();
 });
 
-// Compare plaintext with hash
 userSchema.methods.matchPassword = async function (enteredPassword) {
 	return await bcrypt.compare(enteredPassword, this.password);
 };
 
 const User = mongoose.model('User', userSchema);
-
 export default User;
