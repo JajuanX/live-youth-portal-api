@@ -9,6 +9,11 @@ dotenv.config();
 
 const app = express();
 
+app.use(cors({
+	origin: process.env.CLIENT_ORIGIN || '*',
+	credentials: true
+}));
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
