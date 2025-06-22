@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import authMiddleware from './middleware/auth.middleware.js';
 import errorMiddleware from './middleware/error.middleware.js';
+import authRoutes from './routes/auth.routes.js';
 
 dotenv.config();
 
@@ -11,11 +12,13 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use('/api/auth', authRoutes);
 
 // Auth Middleware
-app.use(authMiddleware.initialize); // attach auth check logic here as needed
+app.use(authMiddleware.protect); 
 
 // Example route
+
 app.get('/', (req, res) => {
 	res.json({ message: 'API running' });
 });
