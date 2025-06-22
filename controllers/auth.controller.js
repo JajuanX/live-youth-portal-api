@@ -9,14 +9,14 @@ const generateToken = (userId) => {
 
 export const registerUser = async (req, res, next) => {
 	try {
-		const { email, password, name } = req.body;
+		const { email, password, name, role = 'player' } = req.body;
 
 		const existing = await User.findOne({ email });
 		if (existing) {
 			return res.status(400).json({ message: 'Email already in use' });
 		}
 
-		const user = await User.create({ email, password, name });
+		const user = await User.create({ email, password, name, role });
 
 		res.status(201).json({
 			message: 'User registered successfully',
@@ -24,6 +24,7 @@ export const registerUser = async (req, res, next) => {
 				id: user._id,
 				name: user.name,
 				email: user.email,
+				role: user.role,
 				token: generateToken(user._id),
 			},
 		});
@@ -31,6 +32,7 @@ export const registerUser = async (req, res, next) => {
 		next(err);
 	}
 };
+
 
 export const loginUser = async (req, res, next) => {
 	try {
