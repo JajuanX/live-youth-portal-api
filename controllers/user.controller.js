@@ -48,6 +48,31 @@ export const updateUserProfile = async (req, res, next) => {
 	}
 };
 
+export const leaveTeam = async (req, res, next) => {
+	try {
+		if (req.user.role !== 'player') {
+			return res.status(403).json({ message: 'Only players can leave a team' });
+		}
+
+		const user = await User.findById(req.user._id);
+		if (!user.team) {
+			return res.status(400).json({ message: 'You are not part of a team' });
+		}
+
+		const oldTeamId = user.team;
+		user.team = null;
+		await user.save();
+
+		// Optional: Notify coach or log event
+		const coach = await Team.findById(oldTeamId).populate('createdBy', 'email name');
+		console.log(`Player ${user.name} left team ${coach.name}`); // Replace with actual notification
+
+		res.json({ message: 'You have left your team', teamLeft: oldTeamId });
+	} catch (err) {
+		next(err);
+	}
+};
+
 export const deleteUserProfile = async (req, res, next) => {
 	try {
 		await User.findByIdAndDelete(req.user._id);
