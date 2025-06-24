@@ -15,16 +15,13 @@ const userSchema = new mongoose.Schema(
 		},
 
 		bio: { type: String },
-		team: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Team',
-		},
 		position: { type: String }, 
 		socials: {
 			twitter: { type: String },
 			instagram: { type: String },
 		},
 		profileImage: { type: String },
+		team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', default: null },
 	},
 	{ timestamps: true }
 );
