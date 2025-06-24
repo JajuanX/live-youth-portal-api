@@ -7,6 +7,7 @@ import teamRoutes from './routes/team.routes.js';
 import userRoutes from './routes/user.routes.js';
 import errorMiddleware from './middleware/error.middleware.js';
 import transferRoutes from './routes/transfer.routes.js';
+import s3Routes from './routes/s3.routes.js';
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/transfers', transferRoutes);
+app.use('/api/s3', s3Routes);
+
 
 app.get('/', (req, res) => {
 	res.json({ message: 'API running' });

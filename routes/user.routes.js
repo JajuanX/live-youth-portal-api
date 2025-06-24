@@ -1,5 +1,5 @@
 import express from 'express';
-import auth from '../middleware/auth.middleware.js';
+import protect from '../middleware/auth.middleware.js';
 import {
 	getUserProfile,
 	updateUserProfile,
@@ -11,10 +11,10 @@ const router = express.Router();
 
 router
 	.route('/me')
-	.get(auth.protect, getUserProfile)
-	.put(auth.protect, updateUserProfile)
-	.delete(auth.protect, deleteUserProfile);
+	.get(protect, getUserProfile)
+	.put(protect, updateUserProfile)
+	.delete(protect, deleteUserProfile);
 
-router.patch('/me/leave-team', auth.protect, leaveTeam);
+router.patch('/me/leave-team', protect, leaveTeam);
 
 export default router;
