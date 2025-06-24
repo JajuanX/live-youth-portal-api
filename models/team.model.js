@@ -4,8 +4,8 @@ const teamSchema = new mongoose.Schema(
 	{
 		name: { type: String, required: true },
 		sport: { type: String },
-		level: { type: String }, 
-
+		level: { type: String },
+		logo: { type: String },
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
@@ -18,6 +18,8 @@ const teamSchema = new mongoose.Schema(
 				ref: 'User',
 			},
 		],
+		pendingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	},
 	{ timestamps: true }
 );
