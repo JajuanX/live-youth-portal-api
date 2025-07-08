@@ -15,20 +15,17 @@ import {
 
 const router = express.Router();
 
-// Authenticated team actions
-router.use(protect);
-
-router.post('/', createTeam);
 router.get('/', getAllTeams);
-router.get('/my-team', getTeamByCoach);
+router.get('/my-team', protect, getTeamByCoach);
 router.get('/:id', getTeam);
-router.put('/:id', updateTeam);
-router.delete('/:id', deleteTeam);
+router.post('/', protect, createTeam);
+router.put('/:id', protect, updateTeam);
+router.delete('/:id', protect, deleteTeam);
 
 // Team join flow
-router.post('/:id/join', requestToJoinTeam);
-router.post('/:teamId/requests/:userId/approve', approveRequest);
-router.post('/:teamId/requests/:userId/deny', denyRequest);
-router.post('/:teamId/remove-player', removePlayer);
+router.post('/:id/join', protect, requestToJoinTeam);
+router.post('/:teamId/requests/:userId/approve', protect, approveRequest);
+router.post('/:teamId/requests/:userId/deny', protect, denyRequest);
+router.post('/:teamId/remove-player', protect, removePlayer);
 
 export default router;

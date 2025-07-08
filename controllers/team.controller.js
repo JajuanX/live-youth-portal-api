@@ -106,13 +106,13 @@ export const getAllTeams = async (req, res, next) => {
 	}
 };
 
-
+// controllers/team.controller.js
 export const updateTeam = async (req, res, next) => {
 	try {
 		const team = await Team.findById(req.params.id);
 		if (!team) return res.status(404).json({ message: 'Team not found' });
 
-		// Only allow coach who created it or an admin
+		// Only allow the coach who created it or an admin to update
 		if (
 			!req.user._id.equals(team.createdBy) &&
 			req.user.role !== 'admin'
@@ -120,11 +120,12 @@ export const updateTeam = async (req, res, next) => {
 			return res.status(403).json({ message: 'Not authorized to update this team' });
 		}
 
-		const { name, sport, level } = req.body;
+		const { name, sport, level, logo } = req.body;
 
 		if (name) team.name = name;
 		if (sport) team.sport = sport;
 		if (level) team.level = level;
+		if (logo) team.logo = logo;
 
 		const updated = await team.save();
 		res.json({ message: 'Team updated', team: updated });
@@ -132,6 +133,7 @@ export const updateTeam = async (req, res, next) => {
 		next(err);
 	}
 };
+
 
 export const deleteTeam = async (req, res, next) => {
 	try {
@@ -204,31 +206,35 @@ export const approveRequest = async (req, res, next) => {
 	try {
 		const { teamId, userId } = req.params;
 
+		if (!mongoose.Types.ObjectId.isValid(teamId) || !mongoose.Types.ObjectId.isValid(userId)) {
+			return res.status(400).json({ message: 'Invalid ID format' });
+		}
+
 		const team = await Team.findById(teamId);
 		if (!team) return res.status(404).json({ message: 'Team not found' });
 
-		// Check permission
+		// Permission check
 		if (!req.user._id.equals(team.createdBy) && req.user.role !== 'admin') {
 			return res.status(403).json({ message: 'Unauthorized' });
 		}
-		console.log(team);
-		console.log(userId);
-		
-		// Check request exists
+
+		// Ensure request exists
 		if (!team.pendingRequests.includes(userId)) {
 			return res.status(400).json({ message: 'User has not requested to join' });
 		}
 
-		// Move user to players
+		// Add to players list and remove from pending
 		team.players.push(userId);
 		team.pendingRequests = team.pendingRequests.filter(
 			(id) => id.toString() !== userId
 		);
 		await team.save();
 
-		// Update user's team
+		// Assign team to user
 		const user = await User.findById(userId);
-		user.team = teamId;
+		if (!user) return res.status(404).json({ message: 'User not found' });
+
+		user.team = team._id;
 		await user.save();
 
 		res.json({ message: 'User approved and added to team' });
@@ -236,6 +242,7 @@ export const approveRequest = async (req, res, next) => {
 		next(err);
 	}
 };
+
 
 export const denyRequest = async (req, res, next) => {
 	try {

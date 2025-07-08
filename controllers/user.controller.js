@@ -1,4 +1,6 @@
 import User from '../models/user.model.js';
+import Team from '../models/team.model.js';
+import mongoose from 'mongoose';
 
 export const getUserProfile = async (req, res, next) => {
 	try {
@@ -7,6 +9,18 @@ export const getUserProfile = async (req, res, next) => {
 			.populate('team', 'name sport level');
 		if (!user) return res.status(404).json({ message: 'User not found' });
 		res.json(user);
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const getAllPlayers = async (req, res, next) => {
+	try {
+		const players = await User.find({ role: 'player' })
+			.select('-password')
+			.populate('team', 'name level'); 
+
+		res.json({ players });
 	} catch (err) {
 		next(err);
 	}
@@ -55,19 +69,32 @@ export const leaveTeam = async (req, res, next) => {
 		}
 
 		const user = await User.findById(req.user._id);
-		if (!user.team) {
+		if (!user || !user.team) {
 			return res.status(400).json({ message: 'You are not part of a team' });
 		}
 
 		const oldTeamId = user.team;
+
+		// 1. Update the user (remove their team)
 		user.team = null;
 		await user.save();
 
-		// Optional: Notify coach or log event
-		const coach = await Team.findById(oldTeamId).populate('createdBy', 'email name');
-		console.log(`Player ${user.name} left team ${coach.name}`); // Replace with actual notification
+		// 2. Update the team (remove the user from players list)
+		const team = await Team.findById(oldTeamId);
+		if (team) {
+			team.players = team.players.filter(
+				(id) => !id.equals(req.user._id)
+			);
+			await team.save();
+		}
 
-		res.json({ message: 'You have left your team', teamLeft: oldTeamId });
+		// 3. Optional logging
+		console.log(`Player ${user.name} left team ${team?.name || 'unknown'}`);
+
+		res.json({
+			message: 'You have left your team',
+			teamLeft: oldTeamId,
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -77,6 +104,22 @@ export const deleteUserProfile = async (req, res, next) => {
 	try {
 		await User.findByIdAndDelete(req.user._id);
 		res.json({ message: 'User account deleted' });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const getPlayerById = async (req, res, next) => {
+	try {
+		const player = await User.findById(req.params.id)
+			.select('-password')
+			.populate('team', 'name level');
+
+		if (!player || player.role !== 'player') {
+			return res.status(404).json({ message: 'Player not found' });
+		}
+
+		res.json({ user: player });
 	} catch (err) {
 		next(err);
 	}
